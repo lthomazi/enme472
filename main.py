@@ -4,6 +4,9 @@ This is code for controlling our robot. The code will have to:
     - control soleid valves for water control
     - measure distance of two ultrasonic sensors
 '''
+
+# "hello"
+
 import machine
 from time import utime, sleep
 from machine import Pin, PWM, ADC
