@@ -19,6 +19,8 @@ ultrasonic_1_trigger = Pin(12, Pin.OUT)
 ultrasonic_2_echo = Pin(11, Pin.IN)
 ultrasonic_2_trigger = Pin(12, Pin.OUT)
 
+# direction (0 = right, 1 = left)
+direction = 0
 
 # pin for motor control
 pwm = PWM(Pin(0))
@@ -89,3 +91,13 @@ def move_motor(power):
         duty = int(duty * max_duty)
         #print(duty)
         pwm.duty_u16(duty)
+
+# main function
+if __name__ == '__main__':
+    
+    # robot is at the edge, should reverse direction and turn off water
+    if read_distance(2) > read_distance(1) and direction == 0:
+        #stop motor or change direction
+        #turn off water
+        pass
+    
