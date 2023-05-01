@@ -34,16 +34,10 @@ min_adc = 320
 # read distance from ultrasonic
 def read_distance(sensor_number):
     if sensor_number == 1:
-        # Set the trigger pin to low
-        ultrasonic_1_trigger.value(0)
-
-        # Wait for the sensor to settle
-        time.sleep_us(2)
-
         ultrasonic_1_trigger.low()
         utime.sleep(2)
         ultrasonic_1_trigger.high()
-        utime.sleep(10)
+        utime.sleep(5)
         ultrasonic_1_trigger.low()
        
         while ultrasonic_1_echo.value() == 0:
@@ -55,13 +49,12 @@ def read_distance(sensor_number):
         timepassed1 = signalon1 - signaloff1
         distance1 = (timepassed1 * 0.0343) / 2
         print("Sensor 1: ", distance1, " cm")
-        return distance1 # in cm
 
     elif sensor_number == 2:
         ultrasonic_2_trigger.low()
         utime.sleep(2)
         ultrasonic_2_trigger.high()
-        utime.sleep(10)
+        utime.sleep(5)
         ultrasonic_2_trigger.low()
        
         while ultrasonic_2_echo.value() == 0:
@@ -73,7 +66,6 @@ def read_distance(sensor_number):
         timepassed2 = signalon2 - signaloff2
         distance2 = (timepassed2 * 0.0343) / 2
         print("Sensor 2: ", distance2, " cm")
-        return distance2 # in cm
     
     else:
         raise Exception("no utrasonic sensor selected")
