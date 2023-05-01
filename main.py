@@ -31,6 +31,14 @@ adc = ADC(Pin(26))     # create an ADC object
 max_adc = 65535
 min_adc = 320
 
+# main function
+def main():
+    # robot is at the edge, should reverse direction and turn off water
+    if read_distance(2) > read_distance(1) and direction == 0:
+        #stop motor or change direction
+        #turn off water
+        pass
+
 # read distance from ultrasonic
 def read_distance(sensor_number):
     if sensor_number == 1:
@@ -92,12 +100,8 @@ def move_motor(power):
         #print(duty)
         pwm.duty_u16(duty)
 
-# main function
+
 if __name__ == '__main__':
+    main()
     
-    # robot is at the edge, should reverse direction and turn off water
-    if read_distance(2) > read_distance(1) and direction == 0:
-        #stop motor or change direction
-        #turn off water
-        pass
     
