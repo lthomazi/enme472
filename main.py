@@ -14,29 +14,15 @@ import _thread as thread
 solenoid = Pin(22, Pin.OUT)
 
 # Ultrasonic sensor
-ultrasonic_1_echo = Pin(11, Pin.IN)
-ultrasonic_1_trigger = Pin(12, Pin.OUT)
-ultrasonic_2_echo = Pin(11, Pin.IN)
-ultrasonic_2_trigger = Pin(12, Pin.OUT)
-
-# direction (0 = right, 1 = left)
-direction = 0
-
-# pin for motor control
-pwm = PWM(Pin(0))
-pwm.freq(12000)
-max_duty = 65025
-
-adc = ADC(Pin(26))     # create an ADC object
-max_adc = 65535
-min_adc = 320
+ultrasonic_1_echo = Pin(10, Pin.IN)
+ultrasonic_1_trigger = Pin(11, Pin.OUT)
+ultrasonic_2_echo = Pin(12, Pin.IN)
+ultrasonic_2_trigger = Pin(13, Pin.OUT)
+ultrasonic_3_echo = Pin(14, Pin.IN)
+ultrasonic_3_trigger = Pin(15, Pin.OUT)
 
 # main function
 def main():
-    # robot is at the edge, should reverse direction and turn off water
-    if read_distance(2) > read_distance(1) and direction == 0:
-        #stop motor or change direction
-        #turn off water
         pass
 
 # Function to calculate the distance using HC-SR04
