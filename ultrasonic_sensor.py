@@ -43,17 +43,27 @@ def measure_distance(trigger_pin, echo_pin, timeout=1000000):
     return distance
 
 # Define the GPIO pins for trigger and echo
-trigger_pin = 2
-echo_pin = 3
+trigger_pin1 = 2
+echo_pin1 = 3
+
+trigger_pin2 = 16
+echo_pin2 = 17
 
 while True:
     # Measure and print the distance
-    distance = measure_distance(trigger_pin, echo_pin)
+    distance = measure_distance(trigger_pin1, echo_pin1)
     if distance is not None:
-        print("Distance:", distance, "cm")
+        print("Distance 2:", distance, "cm")
     else:
-        print("Measurement timeout, trying again...")
+        print("Measurement timeout1, trying again...")
     
+    distance = measure_distance(trigger_pin2, echo_pin2)
+    if distance is not None:
+        print("Distance 1:", distance, "cm")
+    else:
+        print("Measurement timeout2, trying again...")
+
+
     # Wait for 1 second before taking the next measurement
     time.sleep(0.1)
 
