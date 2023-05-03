@@ -10,10 +10,12 @@ def connect(ssid, password):
     
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
-
+    
+    '''
     for (scan_ssid, bssid, channel, RSSI, security, hidden) in wlan.scan():
         if len(scan_ssid) > 0:
             print(scan_ssid.decode('utf-8'))
+    '''
     
     print(f'\nConnecting to {ssid}')
 
