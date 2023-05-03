@@ -1,0 +1,47 @@
+<html><head><title>Lean Green Cleaning Machine</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+            <link rel="icon" href="data:,">
+            <style>
+            html{font-family: Helvetica; display:inline-block; margin: 0px auto; text-align: center;}
+            h1{color: #0F3376; padding: 2vh;}
+            p{font-size: 1.5rem;}
+            .button1{display: inline-block; background-color: #e7bd3b; border: none; border-radius: 4px; color: white;
+                             padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
+            .button2{display:inline-block; background-color: #4286f4; border: none; border-radius: 4px; color: white;
+                             padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
+            </style>
+    
+            <script>
+            function turnLEDOn() {
+                fetch("/ledon");
+                console.log("led on");
+                updateLEDState();
+            }
+            </script>
+    
+            <script>
+            function turnLEDOff() {
+                fetch("/ledoff");
+                console.log("led off");
+                updateLEDState();
+            }
+            </script>
+    
+            <script>
+            function updateLEDState() {
+                fetch("/ledstate")
+                    .then(response => response.text())
+                    .then(state => {
+                        document.getElementById("ledState").innerHTML = state;
+                    });
+            }
+            </script>
+    
+            </head>
+            <body onload="updateLEDState();">
+            <p>LED Switch</p>
+            <p id="ledState"></p>
+            <button class="button1" onclick="turnLEDOn()"> ON </button>
+            <button class="button2"  onclick="turnLEDOff()"> OFF </button>
+            </body>
+        </html>
