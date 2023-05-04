@@ -74,8 +74,8 @@ def web_page():
         <body onload="update_state();">
         <p>Motor Control</p>
         <p id="motor_status"></p>
-        <button class="button1" onclick="move_right()"> Right </button>
-        <button class="button2" onclick="move_left()"> Left </button>
+        <button class="button1" onclick="move_left()"> Left </button>
+        <button class="button2" onclick="move_right()"> Right </button>
         <button class="button" onclick="stop_motor()"> STOP </button>
         </body>
     </html>
@@ -86,11 +86,13 @@ def move_right():
         controller1.on() 
         controller2.off()
         motor_status = "Moving Right"
+        print(motor_status)
 
 def move_left():
         controller1.on() 
         controller2.off() 
         motor_status = "Moving Left"
+        print(motor_status)
 
 def stop_all():
         controller1.off()
@@ -98,6 +100,7 @@ def stop_all():
         controller3.off()
         controller4.off()
         motor_status = "Moving Stopped"
+        print(motor_status)
 
 def main():
         # Open the text file and read its contents
@@ -129,7 +132,7 @@ def main():
                 
                 # Recieve data from client
                 request_data = conn.recv(1024)
-                print(request_data)
+                #print(request_data)
 
                 # Process request
                 if b"GET /move_right" in request_data:
@@ -169,6 +172,7 @@ def main():
                     conn.sendall(web_page())
                     conn.close()
             
+#                print(motor_status) 
 
             except OSError as e:
                 conn.close()
