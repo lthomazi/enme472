@@ -38,7 +38,6 @@ def turn_off_solenoid():
     solenoid.off()
     time.sleep(0.5)
 
-    
 
 
 # main function
