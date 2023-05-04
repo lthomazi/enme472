@@ -89,8 +89,8 @@ def move_right():
         print(motor_status)
 
 def move_left():
-        controller1.on() 
-        controller2.off() 
+        controller1.off() 
+        controller2.on() 
         motor_status = "Moving Left"
         print(motor_status)
 
