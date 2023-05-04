@@ -38,7 +38,6 @@ def turn_off_solenoid():
     solenoid.off()
     time.sleep(0.5)
 
-    
 
 
 # main function
@@ -47,9 +46,6 @@ def main():
 
 # Function to calculate the distance using HC-SR04
 def measure_distance_1():
-
-    ultrasonic_1_echo = Pin(10, Pin.IN)
-    ultrasonic_1_trigger = Pin(11, Pin.OUT)
     
     # Set trigger pin to low for 2 microseconds
     ultrasonic_1_trigger.low()
@@ -76,9 +72,6 @@ def measure_distance_1():
     return distance
 
 def measure_distance_2():
-
-    ultrasonic_2_echo = Pin(10, Pin.IN)
-    ultrasonic_2_trigger = Pin(11, Pin.OUT)
     
     # Set trigger pin to low for 2 microseconds
     ultrasonic_2_trigger.low()
