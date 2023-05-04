@@ -10,16 +10,22 @@ from time import utime, sleep
 from machine import Pin, PWM, ADC
 import _thread as thread
 
-# Solenoid control
+# Solenoid control pins
 solenoid = Pin(22, Pin.OUT)
 
-# Ultrasonic sensor
+# Ultrasonic sensor pins
 ultrasonic_1_echo = Pin(10, Pin.IN)
 ultrasonic_1_trigger = Pin(11, Pin.OUT)
 ultrasonic_2_echo = Pin(12, Pin.IN)
 ultrasonic_2_trigger = Pin(13, Pin.OUT)
 ultrasonic_3_echo = Pin(14, Pin.IN)
 ultrasonic_3_trigger = Pin(15, Pin.OUT)
+
+# motor control pins
+motor1 = Pin(18, Pin.OUT)
+motor2 = Pin(19, Pin.OUT)
+motor3 = Pin(20, Pin.OUT)
+motor4 = Pin(21, Pin.OUT)
 
 # main function
 def main():
@@ -57,27 +63,8 @@ def measure_distance(trigger_pin, echo_pin):
     return distance
 
 
-# linear interpolation to map a range of values to another (from stackoverflow)
-def translate(value, leftMin, leftMax, rightMin, rightMax):
-    # Figure out how 'wide' each range is
-    leftSpan = leftMax - leftMin
-    rightSpan = rightMax - rightMin
-
-    # Convert the left range into a 0-1 range (float)
-    valueScaled = float(value - leftMin) / float(leftSpan)
-
-    # Convert the 0-1 range into a value in the right range.
-    return rightMin + (valueScaled * rightSpan)
-
-# funcion for controling one of the motors
-# TODO: modify function to be able to controle multiple motors with one funciton
-def move_motor(power):
-
-        duty = (translate(power, -1, 1, 0.06, 0.09))
-        duty = int(duty * max_duty)
-        #print(duty)
-        pwm.duty_u16(duty)
-
+def forward():
+    pass
 
 if __name__ == '__main__':
     main()
