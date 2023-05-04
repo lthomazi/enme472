@@ -1,6 +1,8 @@
 from machine import Pin, PWM
 from time import sleep
 
+#adds code
+
 IN1 = Pin(12, Pin.OUT)
 IN2 = Pin(13, Pin.OUT)
 
