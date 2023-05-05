@@ -6,9 +6,11 @@ This is code for controlling our robot. The code will have to:
 '''
 
 import machine
-from time import time, sleep
+from time import time, sleep, sleep_us
 from machine import Pin, PWM, ADC
 import _thread as thread
+import wifi
+import socket
 
 # Ultrasonic sensor pins
 ultrasonic_1_echo = Pin(7, Pin.IN)
@@ -29,6 +31,8 @@ solenoid.value(0)
 
 # main function
 def main():
+    abortALL() # start the code without anything moving
+
     status = 0 # 0 -> stop, 1 -> run, -1 -> reverse
     # Open the text file and read its contents
     with open("wifi_credentials.txt", "r") as f:
@@ -52,9 +56,9 @@ def main():
     s.listen(5)          # up to 5 queued connections
 
     while True:
-        status = 0 # 0 -> stop/abortALL, 1 -> motor1_forward, -1 -> motor1_reverse
         print('Waiting for connection...')
         try:
+            global conn
             conn, addr = s.accept()                 # blocking call -- code pauses until connected to client
             print(f'Connection from {addr}')
             
@@ -68,6 +72,11 @@ def main():
                 motor1_forward()
                 motor2_on() # brush on
                 open_solenoid() # open water
+                
+                response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nRunning"
+                conn.send(response.encode("utf-16"))
+                conn.close()
+
                 # TODO: Run robot autonomously
                 while True:
                     # measure distance continuously
@@ -81,21 +90,19 @@ def main():
                         motor1_reverse()
                 # ----------------------------------------------------------------
                 
-                response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nRunning"
-                conn.send(response.encode("utf-16"))
-                conn.close()
 
             # Process request
             if b"GET /abort" in request_data:
                 # Stop Motor
                 abortALL()
+                status = 0
                 response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nMotor stopped"
                 conn.send(response.encode("utf-16"))
                 conn.close()
             
             # Update motor status
-            if b"GET /motor_status" in request_data:
-                response = f"HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n{motor_status}"
+            if b"GET /status" in request_data:
+                response = f"HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n{status}"
                 conn.send(response.encode("utf-16"))
                 conn.close()
 
@@ -107,7 +114,7 @@ def main():
                 conn.sendall(web_page())
                 conn.close()
         
-#                print(motor_status) 
+#                print(status) 
 
         except OSError as e:
             conn.close()
@@ -171,10 +178,10 @@ def web_page():
 
         <script>
         function update_state() {
-            fetch("/motor_status")
+            fetch("/status")
                 .then(response => response.text())
                 .then(state => {
-                    document.getElementById("motor_status").innerHTML = state;
+                    document.getElementById("status").innerHTML = state;
                 });
         }
         </script>
@@ -185,7 +192,7 @@ def web_page():
         
         <body onload="update_state();">
         <p>Motor Control</p>
-        <p id="motor_status"></p>
+        <p id="status"></p>
         <button class="run" onclick="run()"> run </button>
         <button class="abort" onclick="abort()"> abort </button>
         
@@ -240,13 +247,23 @@ def close_solenoid():
 # Function to calculate the distance using ultrasonic sensor (HC-SR04)
 def measure_distance_1():
     
+    # Recieve data from client
+    request_data = conn.recv(1024)
+    # Process request
+    if b"GET /abort" in request_data:
+        # Stop Motor
+        abortALL()
+        response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nMotor stopped"
+        conn.send(response.encode("utf-16"))
+        conn.close()
+
     # Set trigger pin to low for 2 microseconds
     ultrasonic_1_trigger.low()
-    time.sleep_us(2)
+    sleep_us(2)
     
     # Send a 10-microsecond pulse to the trigger pin
     ultrasonic_1_trigger.high()
-    time.sleep_us(10)
+    sleep_us(10)
     ultrasonic_1_trigger.low()
     
     # Measure the duration of the echo pulse
@@ -268,11 +285,11 @@ def measure_distance_2():
     
     # Set trigger pin to low for 2 microseconds
     ultrasonic_2_trigger.low()
-    time.sleep_us(2)
+    sleep_us(2)
     
     # Send a 10-microsecond pulse to the trigger pin
     ultrasonic_2_trigger.high()
-    time.sleep_us(10)
+    sleep_us(10)
     ultrasonic_2_trigger.low()
     
     # Measure the duration of the echo pulse
