@@ -17,17 +17,19 @@ ultrasonic_2_echo = Pin(9, Pin.IN)
 ultrasonic_2_trigger = Pin(10, Pin.OUT)
 
 # motor control pins
-motor_speed1 = PWM(Pin(11))
-motor1A = Pin(12, Pin.OUT)
+motor_speed1 = PWM(Pin(15))
+motor1A = Pin(14, Pin.OUT)
 motor1B = Pin(13, Pin.OUT)
-motor2A = Pin(14, Pin.OUT)
-motor2B = Pin(15, Pin.OUT)
+motor2A = Pin(12, Pin.OUT)
+motor2B = Pin(11, Pin.OUT)
 
 # Solenoid control pins
 solenoid = Pin(22, Pin.OUT)
+solenoid.value(0)
 
 # main function
 def main():
+    status = 0 # 0 -> stop, 1 -> run, -1 -> reverse
     # Open the text file and read its contents
     with open("wifi_credentials.txt", "r") as f:
             content = f.read().splitlines()
@@ -62,15 +64,29 @@ def main():
 
             # Process request
             if b"GET /run" in request_data:
+                status = 1
+                motor1_forward()
+                motor2_on() # brush on
+                open_solenoid() # open water
                 # TODO: Run robot autonomously
                 while True:
-                    pass
+                    # measure distance continuously
+                    # if moving forward and distance is less than x
+                    #       stop brush, stop water and move back
+                    # if abort message
+                    #       stop everything
+                    if status == 1 and measure_distance_1() < 5:
+                        motor2_off() # turn off brush
+                        close_solenoid() # turn off water
+                        motor1_reverse()
+                # ----------------------------------------------------------------
+                
                 response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nRunning"
                 conn.send(response.encode("utf-16"))
                 conn.close()
 
             # Process request
-            if b"GET /stop_motor" in request_data:
+            if b"GET /abort" in request_data:
                 # Stop Motor
                 abortALL()
                 response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nMotor stopped"
@@ -97,50 +113,129 @@ def main():
             conn.close()
             print('connection closed')
 
- 
+# Web page content
+def web_page():
+    html = """
+    <!--
+        Title
+    Run (green button)
+    abort (red button)
+    Direction control (forward reverse button) 
+        Distance (maybe)
+        Status (cleaning, stopped, home)
+    Brush (on off)
+    Water (on off)
 
+-->
+<html><head><title>Lean Green Cleaning Machine - Team 14</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" href="data:,">
+        <style>
+        html{font-family: Helvetica; display:inline-block; margin: 0px auto; text-align: center;}
+        h1{color: #106c00; padding: 2vh;}
+        p{font-size: 1.5rem;}
+        .run{display: inline-block; background-color: #32b212; border: none; border-radius: 4px; color: white;
+                         padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
+        .abort{display: inline-block; background-color: #ff0000; border: none; border-radius: 4px; color: white;
+                         padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}                 
+        </style>
+
+        <!-- 
+        <script>
+        function move_right() {
+         message sent to server
+            fetch("/move_right");
+         log message on web client
+            console.log("move right");
+         run other function
+            update_state();
+        }
+        </script>
+        -->
+
+        <script>
+        function run() {
+            fetch("/run");
+            console.log("run");
+            update_state();
+        }
+        </script>
+
+        <script>
+        function abort() {
+            fetch("/abort");
+            console.log("abort");
+            update_state();
+        }
+        </script>
+
+        <script>
+        function update_state() {
+            fetch("/motor_status")
+                .then(response => response.text())
+                .then(state => {
+                    document.getElementById("motor_status").innerHTML = state;
+                });
+        }
+        </script>
+
+        <!-- Web page content -->
+        </head>
+        <h1>Lean Green Cleaning Machine</h1>
+        
+        <body onload="update_state();">
+        <p>Motor Control</p>
+        <p id="motor_status"></p>
+        <button class="run" onclick="run()"> run </button>
+        <button class="abort" onclick="abort()"> abort </button>
+        
+        </body>
+    </html>
+    """
+    return bytes(html, 'utf-16')
+
+# Stop moving, stop water, stop brush
 def abortALL():
     motor1_off()
     motor2_off()
     close_solenoid()
 
+# Move forward
 def motor1_forward():
     for i in range(65535):
         motor_speed1.duty_u16(i)
         motor1A.low()
         motor1B.high()
 
+# Move back
 def motor1_reverse():
     for i in range(65535):
         motor_speed1.duty_u16(i)
         motor1A.high()
         motor1B.low()
 
+# Stop moving
 def motor1_off():
     motor1A.low()
     motor1B.low()
 
-def motor2_forward():
+# Start brush
+def motor2_on():
     motor2A.low()
     motor2B.high()
 
+# Stop brush
 def motor2_off():
     motor2A.low()
     motor2B.low()
 
 
-# solenoid-relay pins
-solenoid = Pin(22,Pin.OUT)
-solenoid.value(0)
-
 # Open or close solenoid
 def open_solenoid():
     solenoid.on()
-    time.sleep(0.5)
 
 def close_solenoid():
     solenoid.off()
-    time.sleep(0.5)
 
 # Function to calculate the distance using ultrasonic sensor (HC-SR04)
 def measure_distance_1():
@@ -195,9 +290,6 @@ def measure_distance_2():
     
     return distance
 
-
-def forward():
-    pass
 
 if __name__ == '__main__':
     main()
