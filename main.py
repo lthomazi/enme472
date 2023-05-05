@@ -90,10 +90,26 @@ def main():
                 # Stop Motor
                 abortALL()
                 status = 0
-                response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nMotor stopped"
+                response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nAborted"
                 conn.send(response.encode("utf-16"))
                 conn.close()
             
+            # Process request
+            if b"GET /reset" in request_data:
+                motor2_off()        # turn off brush
+                motor1_reverse()    # move motor back
+                status = -1
+                response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nResetting"
+                conn.send(response.encode("utf-16"))
+                conn.close()
+            
+            # Process request
+            if b"GET /brush_on" in request_data:
+                motor2_on()
+                response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nBrush On"
+                conn.send(response.encode("utf-16"))
+                conn.close()
+
             # Update motor status
             if b"GET /status" in request_data:
                 response = f"HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n{status}"
@@ -117,11 +133,11 @@ def main():
 # Web page content
 def web_page():
     html = """
-    <!--
+        <!--
         Title
     Run (green button)
     abort (red button)
-    Direction control (forward reverse button) 
+    Direction control (forward reset button) 
         Distance (maybe)
         Status (cleaning, stopped, home)
     Brush (on off)
@@ -135,10 +151,13 @@ def web_page():
         html{font-family: Helvetica; display:inline-block; margin: 0px auto; text-align: center;}
         h1{color: #106c00; padding: 2vh;}
         p{font-size: 1.5rem;}
-        .run{display: inline-block; background-color: #32b212; border: none; border-radius: 4px; color: white;
-                         padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
-        .abort{display: inline-block; background-color: #ff0000; border: none; border-radius: 4px; color: white;
-                         padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}                 
+        .button{display: inline-block; background-color: #000000; border: none; border-radius: 4px; color: white;
+                         text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer; 
+                         width: 150px; height: 60px; line-height: 1.2; text-align: center;}
+        .run{background-color: #32b212;}
+        .abort {background-color: #ff0000;}
+        .reset {background-color: #3f3cff;}
+
         </style>
 
         <!-- 
@@ -171,6 +190,22 @@ def web_page():
         </script>
 
         <script>
+        function reset() {
+            fetch("/reset");
+            console.log("reset");
+            update_state();
+        }
+        </script>
+
+        <script>
+        function brush_on() {
+            fetch("/brush_on");
+            console.log("brush_on");
+            update_state();
+        }
+        </script>
+
+        <script>
         function update_state() {
             fetch("/status")
                 .then(response => response.text())
@@ -180,16 +215,19 @@ def web_page():
         }
         </script>
 
-        <!-- Web page content -->
         </head>
+        <!-- Web page content -->
         <h1>Lean Green Cleaning Machine</h1>
         
         <body onload="update_state();">
         <p>Motor Control</p>
         <p id="status"></p>
-        <button class="run" onclick="run()"> run </button>
-        <button class="abort" onclick="abort()"> abort </button>
+        <button class="button run" onclick="run()"> run </button>
+        <button class="button abort" onclick="abort()"> abort </button>
+        <button class="button reset" onclick="reset()"> reset </button>
         
+        <p></p>
+
         </body>
     </html>
     """
