@@ -28,7 +28,76 @@ solenoid = Pin(22, Pin.OUT)
 
 # main function
 def main():
-        pass
+    # Open the text file and read its contents
+    with open("wifi_credentials.txt", "r") as f:
+            content = f.read().splitlines()
+
+    # Extract the SSID and password from the content
+    network_name = content[0]
+    password = content[1]
+    # To access HTML page, connect to IP address via browser
+    ip = wifi.connect(network_name, password)
+    print(ip)
+    # Set up Socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # pass IP addr & socket type
+    # AF_INET -> IPv4 socket
+    # SOCK_STREAM -> use TCP
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind(('', 80))     #  # Bind HOST IP address through the given PORT 
+    # HOST can be a specific IP address, the loopback address (127.0.0.1), 
+    # or an empty string (meaning any connection will be allowed). 
+    # PORT can be a privileged port such as 80 for HTTP, or a custom port > 1023
+    s.listen(5)          # up to 5 queued connections
+
+    while True:
+        status = 0 # 0 -> stop/abortALL, 1 -> motor1_forward, -1 -> motor1_reverse
+        print('Waiting for connection...')
+        try:
+            conn, addr = s.accept()                 # blocking call -- code pauses until connected to client
+            print(f'Connection from {addr}')
+            
+            # Recieve data from client
+            request_data = conn.recv(1024)
+            #print(request_data)
+
+            # Process request
+            if b"GET /run" in request_data:
+                # TODO: Run robot autonomously
+                while True:
+                    pass
+                response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nRunning"
+                conn.send(response.encode("utf-16"))
+                conn.close()
+
+            # Process request
+            if b"GET /stop_motor" in request_data:
+                # Stop Motor
+                abortALL()
+                response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nMotor stopped"
+                conn.send(response.encode("utf-16"))
+                conn.close()
+            
+            # Update motor status
+            if b"GET /motor_status" in request_data:
+                response = f"HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n{motor_status}"
+                conn.send(response.encode("utf-16"))
+                conn.close()
+
+            # Only send the HTML page when the path is /
+            if b"GET / " in request_data:
+                conn.send('HTTP/1.0 200 OK\n')
+                conn.send('Content-type: text/html\n')
+                conn.send('Connection: close\n\n')
+                conn.sendall(web_page())
+                conn.close()
+        
+#                print(motor_status) 
+
+        except OSError as e:
+            conn.close()
+            print('connection closed')
+
+ 
 
 def abortALL():
     motor1_off()
