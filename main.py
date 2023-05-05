@@ -55,10 +55,6 @@ def motor2_forward():
     motor2A.low()
     motor2B.high()
 
-def motor2_reverse():
-    motor2A.high()
-    motor2B.low()
-
 def motor2_off():
     motor2A.low()
     motor2B.low()
