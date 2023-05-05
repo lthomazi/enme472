@@ -1,7 +1,7 @@
 <!--
         Title
     Run (green button)
-    Stop (red button)
+    abort (red button)
     Direction control (forward reverse button) 
         Distance (maybe)
         Status (cleaning, stopped, home)
@@ -18,7 +18,7 @@
         p{font-size: 1.5rem;}
         .run{display: inline-block; background-color: #32b212; border: none; border-radius: 4px; color: white;
                          padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
-        .stop{display: inline-block; background-color: #ff0000; border: none; border-radius: 4px; color: white;
+        .abort{display: inline-block; background-color: #ff0000; border: none; border-radius: 4px; color: white;
                          padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}                 
         </style>
 
@@ -45,17 +45,17 @@
         </script>
 
         <script>
-        function move_left() {
-            fetch("/move_left");
-            console.log("move left");
+        function run() {
+            fetch("/run");
+            console.log("run");
             update_state();
         }
         </script>
 
         <script>
-        function stop_motor() {
-            fetch("/stop_motor");
-            console.log("stop motor");
+        function abort() {
+            fetch("/abort");
+            console.log("abort");
             update_state();
         }
         </script>
@@ -77,8 +77,8 @@
         <body onload="update_state();">
         <p>Motor Control</p>
         <p id="motor_status"></p>
-        <button class="run" onclick="move_left()"> run </button>
-        <button class="stop" onclick="abort()"> abort </button>
-        <button class="button" onclick="stop_motor()"> STOP </button>
+        <button class="run" onclick="run()"> run </button>
+        <button class="abort" onclick="abort()"> abort </button>
+        
         </body>
     </html>
