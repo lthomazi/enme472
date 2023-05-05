@@ -1,4 +1,5 @@
-<!--
+"""
+    <!--
         Title
     Run (green button)
     abort (red button)
@@ -53,10 +54,10 @@
 
         <script>
         function update_state() {
-            fetch("/motor_status")
+            fetch("/status")
                 .then(response => response.text())
                 .then(state => {
-                    document.getElementById("motor_status").innerHTML = state;
+                    document.getElementById("status").innerHTML = state;
                 });
         }
         </script>
@@ -67,9 +68,10 @@
         
         <body onload="update_state();">
         <p>Motor Control</p>
-        <p id="motor_status"></p>
+        <p id="status"></p>
         <button class="run" onclick="run()"> run </button>
         <button class="abort" onclick="abort()"> abort </button>
         
         </body>
     </html>
+    """
