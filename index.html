@@ -1,47 +1,84 @@
-<html><head><title>Lean Green Cleaning Machine</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-            <link rel="icon" href="data:,">
-            <style>
-            html{font-family: Helvetica; display:inline-block; margin: 0px auto; text-align: center;}
-            h1{color: #0F3376; padding: 2vh;}
-            p{font-size: 1.5rem;}
-            .button1{display: inline-block; background-color: #e7bd3b; border: none; border-radius: 4px; color: white;
-                             padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
-            .button2{display:inline-block; background-color: #4286f4; border: none; border-radius: 4px; color: white;
-                             padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
-            </style>
-    
-            <script>
-            function turnLEDOn() {
-                fetch("/ledon");
-                console.log("led on");
-                updateLEDState();
-            }
-            </script>
-    
-            <script>
-            function turnLEDOff() {
-                fetch("/ledoff");
-                console.log("led off");
-                updateLEDState();
-            }
-            </script>
-    
-            <script>
-            function updateLEDState() {
-                fetch("/ledstate")
-                    .then(response => response.text())
-                    .then(state => {
-                        document.getElementById("ledState").innerHTML = state;
-                    });
-            }
-            </script>
-    
-            </head>
-            <body onload="updateLEDState();">
-            <p>LED Switch</p>
-            <p id="ledState"></p>
-            <button class="button1" onclick="turnLEDOn()"> ON </button>
-            <button class="button2"  onclick="turnLEDOff()"> OFF </button>
-            </body>
-        </html>
+<!--
+        Title
+    Run (green button)
+    Stop (red button)
+    Direction control (forward reverse button) 
+        Distance (maybe)
+        Status (cleaning, stopped, home)
+    Brush (on off)
+    Water (on off)
+
+-->
+<html><head><title>Lean Green Cleaning Machine - Team 14</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" href="data:,">
+        <style>
+        html{font-family: Helvetica; display:inline-block; margin: 0px auto; text-align: center;}
+        h1{color: #106c00; padding: 2vh;}
+        p{font-size: 1.5rem;}
+        .run{display: inline-block; background-color: #32b212; border: none; border-radius: 4px; color: white;
+                         padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
+        .stop{display: inline-block; background-color: #ff0000; border: none; border-radius: 4px; color: white;
+                         padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}                 
+        </style>
+
+        <!-- 
+        <script>
+        function move_right() {
+         message sent to server
+            fetch("/move_right");
+         log message on web client
+            console.log("move right");
+         run other function
+            update_state();
+        }
+        </script>
+        -->
+
+        <script>
+        <!-- function name -->
+        function move_right() {
+            fetch("/move_right");
+            console.log("move right");
+            update_state();
+        }
+        </script>
+
+        <script>
+        function move_left() {
+            fetch("/move_left");
+            console.log("move left");
+            update_state();
+        }
+        </script>
+
+        <script>
+        function stop_motor() {
+            fetch("/stop_motor");
+            console.log("stop motor");
+            update_state();
+        }
+        </script>
+
+        <script>
+        function update_state() {
+            fetch("/motor_status")
+                .then(response => response.text())
+                .then(state => {
+                    document.getElementById("motor_status").innerHTML = state;
+                });
+        }
+        </script>
+
+        <!-- Web page content -->
+        </head>
+        <h1>Lean Green Cleaning Machine</h1>
+        
+        <body onload="update_state();">
+        <p>Motor Control</p>
+        <p id="motor_status"></p>
+        <button class="run" onclick="move_left()"> run </button>
+        <button class="stop" onclick="abort()"> abort </button>
+        <button class="button" onclick="stop_motor()"> STOP </button>
+        </body>
+    </html>
