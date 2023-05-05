@@ -77,13 +77,7 @@ def main():
                 conn.send(response.encode("utf-16"))
                 conn.close()
 
-                # TODO: Run robot autonomously
                 while True:
-                    # measure distance continuously
-                    # if moving forward and distance is less than x
-                    #       stop brush, stop water and move back
-                    # if abort message
-                    #       stop everything
                     if status == 1 and measure_distance_1() < 5:
                         motor2_off() # turn off brush
                         close_solenoid() # turn off water
