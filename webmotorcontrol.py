@@ -8,20 +8,19 @@ controller1 = Pin(12, Pin.OUT)
 controller2 = Pin(13, Pin.OUT)
 controller3 = Pin(14, Pin.OUT)
 controller4 = Pin(15, Pin.OUT)
-motor_status = "Off"
+
 
 
 # Contents of the webpage
 def web_page():
 
     # Define html code, with LED state passed to the server using javascript
-    html = """
-    <html><head><title>Lean Green Cleaning Machine</title>
+    html = """<html><head><title>Lean Green Cleaning Machine - Team 14</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="icon" href="data:,">
         <style>
         html{font-family: Helvetica; display:inline-block; margin: 0px auto; text-align: center;}
-        h1{color: #0F3376; padding: 2vh;}
+        h1{color: #004f1c; padding: 2vh;}
         p{font-size: 1.5rem;}
         .button1{display: inline-block; background-color: #e7bd3b; border: none; border-radius: 4px; color: white;
                          padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
@@ -31,14 +30,24 @@ def web_page():
                          padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}                 
         </style>
 
+        <!-- 
+        <script>
+        function move_right() {
+         message sent to server
+            fetch("/move_right");
+         log message on web client
+            console.log("move right");
+         run other function
+            update_state();
+        }
+        </script>
+        -->
+
         <script>
         <!-- function name -->
         function move_right() {
-        <!-- message sent to server -->
             fetch("/move_right");
-        <!-- log message on web client -->
             console.log("move right");
-        <!-- run other function -->
             update_state();
         }
         </script>
@@ -70,7 +79,9 @@ def web_page():
         }
         </script>
 
+        <!-- Web page content -->
         </head>
+        <h1>Lean Green Cleaning Machine</h1>
         <body onload="update_state();">
         <p>Motor Control</p>
         <p id="motor_status"></p>
@@ -85,24 +96,25 @@ def web_page():
 def move_right():
         controller1.on() 
         controller2.off()
-        motor_status = "Moving Right"
-        print(motor_status)
+        
+
 
 def move_left():
         controller1.off() 
         controller2.on() 
-        motor_status = "Moving Left"
-        print(motor_status)
+        motor_status = -1
+
 
 def stop_all():
         controller1.off()
         controller2.off()
         controller3.off()
         controller4.off()
-        motor_status = "Moving Stopped"
-        print(motor_status)
+        motor_status = 0
+
 
 def main():
+        motor_status = 0
         # Open the text file and read its contents
         with open("wifi_credentials.txt", "r") as f:
                 content = f.read().splitlines()
@@ -138,6 +150,7 @@ def main():
                 if b"GET /move_right" in request_data:
                     # Move right
                     move_right()
+                    motor_status = 1
                     response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nMotor moving right"
                     conn.send(response.encode("utf-16"))
                     conn.close()
@@ -146,6 +159,7 @@ def main():
                 if b"GET /move_left" in request_data:
                     # Move left
                     move_left()
+                    motor_status = -1
                     response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nMotor moving left"
                     conn.send(response.encode("utf-16"))
                     conn.close()
@@ -154,6 +168,7 @@ def main():
                 if b"GET /stop_motor" in request_data:
                     # Stop Motor
                     stop_all()
+                    motor_status = 0
                     response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nMotor stopped"
                     conn.send(response.encode("utf-16"))
                     conn.close()
@@ -172,7 +187,7 @@ def main():
                     conn.sendall(web_page())
                     conn.close()
             
-#                print(motor_status) 
+                print(motor_status) 
 
             except OSError as e:
                 conn.close()
