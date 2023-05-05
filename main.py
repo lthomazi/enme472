@@ -1,7 +1,7 @@
 ''' 
 This is code for controlling our robot. The code will have to:
     - control two motors
-    - control soleid valves for water control
+    - control solenoid valves for water control
     - measure distance of two ultrasonic sensors
 '''
 
@@ -10,41 +10,74 @@ from time import time, sleep
 from machine import Pin, PWM, ADC
 import _thread as thread
 
+# Ultrasonic sensor pins
+ultrasonic_1_echo = Pin(7, Pin.IN)
+ultrasonic_1_trigger = Pin(8, Pin.OUT)
+ultrasonic_2_echo = Pin(9, Pin.IN)
+ultrasonic_2_trigger = Pin(10, Pin.OUT)
+
+# motor control pins
+motor_speed1 = PWM(Pin(11))
+motor1A = Pin(12, Pin.OUT)
+motor1B = Pin(13, Pin.OUT)
+motor2A = Pin(14, Pin.OUT)
+motor2B = Pin(15, Pin.OUT)
+
 # Solenoid control pins
 solenoid = Pin(22, Pin.OUT)
 
-# Ultrasonic sensor pins
-ultrasonic_1_echo = Pin(10, Pin.IN)
-ultrasonic_1_trigger = Pin(11, Pin.OUT)
-ultrasonic_2_echo = Pin(12, Pin.IN)
-ultrasonic_2_trigger = Pin(13, Pin.OUT)
+# main function
+def main():
+        pass
 
-# motor control pins
-motor1 = Pin(18, Pin.OUT)
-motor2 = Pin(19, Pin.OUT)
-motor3 = Pin(20, Pin.OUT)
-motor4 = Pin(21, Pin.OUT)
+def abortALL():
+    motor1_off()
+    motor2_off()
+    close_solenoid()
+
+def motor1_forward():
+    for i in range(65535):
+        motor_speed1.duty_u16(i)
+        motor1A.low()
+        motor1B.high()
+
+def motor1_reverse():
+    for i in range(65535):
+        motor_speed1.duty_u16(i)
+        motor1A.high()
+        motor1B.low()
+
+def motor1_off():
+    motor1A.low()
+    motor1B.low()
+
+def motor2_forward():
+    motor2A.low()
+    motor2B.high()
+
+def motor2_reverse():
+    motor2A.high()
+    motor2B.low()
+
+def motor2_off():
+    motor2A.low()
+    motor2B.low()
+
 
 # solenoid-relay pins
 solenoid = Pin(22,Pin.OUT)
 solenoid.value(0)
 
 # Open or close solenoid
-def turn_on_solenoid():
+def open_solenoid():
     solenoid.on()
     time.sleep(0.5)
 
-def turn_off_solenoid():
+def close_solenoid():
     solenoid.off()
     time.sleep(0.5)
 
-
-
-# main function
-def main():
-        pass
-
-# Function to calculate the distance using HC-SR04
+# Function to calculate the distance using ultrasonic sensor (HC-SR04)
 def measure_distance_1():
     
     # Set trigger pin to low for 2 microseconds
