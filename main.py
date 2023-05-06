@@ -12,6 +12,9 @@ import _thread as thread
 import wifi
 import socket
 
+# Threashold to be considered a gap (in cm)
+GAP_DISTANCE = 15
+
 # Ultrasonic sensor pins
 ultrasonic_1_echo = Pin(7, Pin.IN)
 ultrasonic_1_trigger = Pin(8, Pin.OUT)
@@ -33,7 +36,6 @@ solenoid.value(0)
 def main():
     abortALL() # start the code without anything moving
 
-    status = 0 # 0 -> stop, 1 -> run, -1 -> reverse
     # Open the text file and read its contents
     with open("wifi_credentials.txt", "r") as f:
             content = f.read().splitlines()
@@ -55,37 +57,61 @@ def main():
     # PORT can be a privileged port such as 80 for HTTP, or a custom port > 1023
     s.listen(5)          # up to 5 queued connections
 
+    gap_count = 0 # number of gaps between panels
+    over_gap = False
+    status = 0 # 0 -> stop, 1 -> run, -1 -> reverse
+    # "VOID LOOP"
     while True:
         print('Waiting for connection...')
+        
+        
         try:
             global conn # global to be able to interupt movent on "abort" click
             conn, addr = s.accept()                 # blocking call -- code pauses until connected to client
-            print(f'Connection from {addr}')
+            #print(f'Connection from {addr}')
             
             # Recieve data from client
             request_data = conn.recv(1024)
             #print(request_data)
+            
+            # END RIGHT: reaches the end on the right
+            if status == 1 and measure_distance_1() > GAP_DISTANCE and measure_distance_2() > GAP_DISTANCE:
+                motor2_off() # turn off brush
+                close_solenoid() # turn off water
+                motor1_reverse()
+        
+            # Forward: count the number of gaps while going forward if not over a gap already 
+            if status == 1 and measure_distance_1() > GAP_DISTANCE and over_gap == False:
+                over_gap = True
+                gap_count += 1
 
-            # Process request
+            # reset over_gap if not over a gap anymore
+            if over_gap == True and measure_distance_1() < GAP_DISTANCE:
+                over_gap = False
+
+            # Backward: count the number of gaps it went over
+            if status == -1 and measure_distance_2() > GAP_DISTANCE and over_gap == False:
+                over_gap = True
+                gap_count -= 1
+
+            # STOP BACK: 
+            if status == -1 and gap_count == 0 and measure_distance_2() < GAP_DISTANCE:
+                abortALL()
+
+
+            # RECIEVE request
             if b"GET /run" in request_data:
                 status = 1
                 motor1_forward()
                 motor2_on() # brush on
                 open_solenoid() # open water
-                
                 response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nRunning"
                 conn.send(response.encode("utf-16"))
                 conn.close()
 
-                while True:
-                    if status == 1 and measure_distance_1() < 5:
-                        motor2_off() # turn off brush
-                        close_solenoid() # turn off water
-                        motor1_reverse()
-                # ----------------------------------------------------------------
                 
 
-            # Process request
+            # RECIEVE request
             if b"GET /abort" in request_data:
                 # Stop Motor
                 abortALL()
@@ -94,23 +120,27 @@ def main():
                 conn.send(response.encode("utf-16"))
                 conn.close()
             
-            # Process request
+            # RECIEVE request
             if b"GET /reset" in request_data:
                 motor2_off()        # turn off brush
+                water_off() # turn water off
                 motor1_reverse()    # move motor back
                 status = -1
+            
+
+                motor1_off()
                 response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nResetting"
                 conn.send(response.encode("utf-16"))
                 conn.close()
             
-            # Process request
+            # RECIEVE request
             if b"GET /brush_on" in request_data:
                 motor2_on()
                 response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nBrush On"
                 conn.send(response.encode("utf-16"))
                 conn.close()
 
-            # Update motor status
+            # SEND motor status
             if b"GET /status" in request_data:
                 response = f"HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n{status}"
                 conn.send(response.encode("utf-16"))
@@ -123,8 +153,7 @@ def main():
                 conn.send('Connection: close\n\n')
                 conn.sendall(web_page())
                 conn.close()
-        
-#                print(status) 
+    # -----------------END OF VOID LOOP-----------------------------------------------    
 
         except OSError as e:
             conn.close()
@@ -181,7 +210,7 @@ def close_solenoid():
 
 # Function to calculate the distance using ultrasonic sensor (HC-SR04)
 def measure_distance_1():
-    
+    # Check for if abort button is pressed while measuring distance
     # Recieve data from client
     request_data = conn.recv(1024)
     # Process request
@@ -217,7 +246,17 @@ def measure_distance_1():
     return distance
 
 def measure_distance_2():
-    
+    # Check for if abort button is pressed while measuring distance
+    # Recieve data from client
+    request_data = conn.recv(1024)
+    # Process request
+    if b"GET /abort" in request_data:
+        # Stop Motor
+        abortALL()
+        response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nMotor stopped"
+        conn.send(response.encode("utf-16"))
+        conn.close()
+
     # Set trigger pin to low for 2 microseconds
     ultrasonic_2_trigger.low()
     sleep_us(2)
