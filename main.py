@@ -58,7 +58,7 @@ def main():
     while True:
         print('Waiting for connection...')
         try:
-            global conn
+            global conn # global to be able to interupt movent on "abort" click
             conn, addr = s.accept()                 # blocking call -- code pauses until connected to client
             print(f'Connection from {addr}')
             
@@ -132,105 +132,8 @@ def main():
 
 # Web page content
 def web_page():
-    html = """
-        <!--
-        Title
-    Run (green button)
-    abort (red button)
-    Direction control (forward reset button) 
-        Distance (maybe)
-        Status (cleaning, stopped, home)
-    Brush (on off)
-    Water (on off)
-
--->
-<html><head><title>Lean Green Cleaning Machine - Team 14</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="icon" href="data:,">
-        <style>
-        html{font-family: Helvetica; display:inline-block; margin: 0px auto; text-align: center;}
-        h1{color: #106c00; padding: 2vh;}
-        p{font-size: 1.5rem;}
-        .button{display: inline-block; background-color: #000000; border: none; border-radius: 4px; color: white;
-                         text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer; 
-                         width: 150px; height: 60px; line-height: 1.2; text-align: center;}
-        .run{background-color: #32b212;}
-        .abort {background-color: #ff0000;}
-        .reset {background-color: #3f3cff;}
-
-        </style>
-
-        <!-- 
-        <script>
-        function move_right() {
-         message sent to server
-            fetch("/move_right");
-         log message on web client
-            console.log("move right");
-         run other function
-            update_state();
-        }
-        </script>
-        -->
-
-        <script>
-        function run() {
-            fetch("/run");
-            console.log("run");
-            update_state();
-        }
-        </script>
-
-        <script>
-        function abort() {
-            fetch("/abort");
-            console.log("abort");
-            update_state();
-        }
-        </script>
-
-        <script>
-        function reset() {
-            fetch("/reset");
-            console.log("reset");
-            update_state();
-        }
-        </script>
-
-        <script>
-        function brush_on() {
-            fetch("/brush_on");
-            console.log("brush_on");
-            update_state();
-        }
-        </script>
-
-        <script>
-        function update_state() {
-            fetch("/status")
-                .then(response => response.text())
-                .then(state => {
-                    document.getElementById("status").innerHTML = state;
-                });
-        }
-        </script>
-
-        </head>
-        <!-- Web page content -->
-        <h1>Lean Green Cleaning Machine</h1>
-        
-        <body onload="update_state();">
-        <p>Motor Control</p>
-        <p id="status"></p>
-        <button class="button run" onclick="run()"> run </button>
-        <button class="button abort" onclick="abort()"> abort </button>
-        <button class="button reset" onclick="reset()"> reset </button>
-        
-        <p></p>
-
-        </body>
-    </html>
-    """
+    with open("index.html", "r", encoding="utf-8") as file:
+        html = file.read()
     return bytes(html, 'utf-16')
 
 # Stop moving, stop water, stop brush
