@@ -6,7 +6,7 @@ This is code for controlling our robot. The code will have to:
 '''
 
 import machine
-from time import time, sleep, sleep_us
+from time import time, sleep, sleep_us, ticks_us
 from machine import Pin, PWM, ADC
 import _thread as thread
 import wifi
@@ -22,11 +22,11 @@ ultrasonic_2_echo = Pin(9, Pin.IN)
 ultrasonic_2_trigger = Pin(10, Pin.OUT)
 
 # motor control pins
-motor_speed1 = PWM(Pin(15))
-motor1A = Pin(14, Pin.OUT)
-motor1B = Pin(13, Pin.OUT)
-motor2A = Pin(12, Pin.OUT)
-motor2B = Pin(11, Pin.OUT)
+motor_speed1 = PWM(Pin(16))
+motor1A = Pin(17, Pin.OUT)
+motor1B = Pin(18, Pin.OUT)
+motor2A = Pin(19, Pin.OUT)
+motor2B = Pin(20, Pin.OUT)
 
 # Solenoid control pins
 solenoid = Pin(22, Pin.OUT)
@@ -75,17 +75,13 @@ def main():
             # Recieve data from client
             request_data = conn.recv(1024)
             #print(request_data)
-            
-            # END RIGHT: reaches the end on the right
-            if status == 1 and measure_distance_1() > GAP_DISTANCE and measure_distance_2() > GAP_DISTANCE:
-                motor2_off() # turn off brush
-                close_solenoid() # turn off water
-                motor1_reverse()
-        
 
+            measure_distance_1()
+            measure_distance_2()
 
             # RECIEVE request
             if b"GET /run" in request_data:
+                print("Run Recieved")
                 status = 1
                 motor1_forward()
                 motor2_on() # brush on
@@ -170,6 +166,7 @@ def abortALL():
 
 # Move forward
 def motor1_forward():
+    print("Motor 1 Running")
     for i in range(65535):
         motor_speed1.duty_u16(i)
         motor1A.low()
@@ -189,6 +186,7 @@ def motor1_off():
 
 # Start brush
 def motor2_on():
+    print("Brush on")
     motor2A.low()
     motor2B.high()
 
@@ -230,16 +228,16 @@ def measure_distance_1():
     # Measure the duration of the echo pulse
     while ultrasonic_1_echo.value() == 0:
         pass
-    start_time = time.ticks_us()
+    start_time = ticks_us()
     
     while ultrasonic_1_echo.value() == 1:
         pass
-    end_time = time.ticks_us()
+    end_time = ticks_us()
     
     # Calculate the distance in centimeters
     duration = time.ticks_diff(end_time, start_time)
     distance = (duration * 0.0343) / 2
-    
+    print("Distance 1: ", distance)
     return distance
 
 def measure_distance_2():
@@ -266,16 +264,16 @@ def measure_distance_2():
     # Measure the duration of the echo pulse
     while ultrasonic_2_echo.value() == 0:
         pass
-    start_time = time.ticks_us()
+    start_time = ticks_us()
     
     while ultrasonic_2_echo.value() == 1:
         pass
-    end_time = time.ticks_us()
+    end_time = ticks_us()
     
     # Calculate the distance in centimeters
     duration = time.ticks_diff(end_time, start_time)
     distance = (duration * 0.0343) / 2
-    
+    print("Distance 2: ", distance)
     return distance
 
 
