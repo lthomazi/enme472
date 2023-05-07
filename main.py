@@ -63,12 +63,14 @@ def main():
     # "VOID LOOP"
     while True:
         print('Waiting for connection...')
+    
         
         
         try:
             global conn # global to be able to interupt movent on "abort" click
+            blink_led(5)
             conn, addr = s.accept()                 # blocking call -- code pauses until connected to client
-            #print(f'Connection from {addr}')
+            print(f'Connection from {addr}')
             
             # Recieve data from client
             request_data = conn.recv(1024)
@@ -80,23 +82,6 @@ def main():
                 close_solenoid() # turn off water
                 motor1_reverse()
         
-            # Forward: count the number of gaps while going forward if not over a gap already 
-            if status == 1 and measure_distance_1() > GAP_DISTANCE and over_gap == False:
-                over_gap = True
-                gap_count += 1
-
-            # reset over_gap if not over a gap anymore
-            if over_gap == True and measure_distance_1() < GAP_DISTANCE:
-                over_gap = False
-
-            # Backward: count the number of gaps it went over
-            if status == -1 and measure_distance_2() > GAP_DISTANCE and over_gap == False:
-                over_gap = True
-                gap_count -= 1
-
-            # STOP BACK: 
-            if status == -1 and gap_count == 0 and measure_distance_2() < GAP_DISTANCE:
-                abortALL()
 
 
             # RECIEVE request
@@ -123,11 +108,9 @@ def main():
             # RECIEVE request
             if b"GET /reset" in request_data:
                 motor2_off()        # turn off brush
-                water_off() # turn water off
+                close_solenoid()    # turn water off
                 motor1_reverse()    # move motor back
                 status = -1
-            
-
                 motor1_off()
                 response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nResetting"
                 conn.send(response.encode("utf-16"))
@@ -142,6 +125,7 @@ def main():
 
             # SEND motor status
             if b"GET /status" in request_data:
+                print(status)
                 response = f"HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n{status}"
                 conn.send(response.encode("utf-16"))
                 conn.close()
@@ -164,6 +148,19 @@ def web_page():
     with open("index.html", "r", encoding="utf-8") as file:
         html = file.read()
     return bytes(html, 'utf-16')
+
+# blink led x times
+def blink_led(x):
+    led = Pin("LED", Pin.OUT)
+    for i in range(x):
+        led.on()
+        sleep(1)
+        led.off()
+        sleep(1)
+    
+    led.on()
+    
+
 
 # Stop moving, stop water, stop brush
 def abortALL():
