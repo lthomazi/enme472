@@ -22,7 +22,11 @@
         .run{background-color: #32b212;}
         .abort {background-color: #ff0000;}
         .reset {background-color: #3f3cff;}
-
+        button:hover{
+            border-radius: 25%;
+            background-color: #0b0020;
+            text-decoration: underline;
+}
         </style>
 
         <!-- 
@@ -86,7 +90,7 @@
         
         <body onload="update_state();">
         <p>Motor Control</p>
-        <p id="status"></p>
+        <!-- <p id="status"></p>-->
         <button class="button run" onclick="run()"> run </button>
         <button class="button abort" onclick="abort()"> abort </button>
         <button class="button reset" onclick="reset()"> reset </button>
