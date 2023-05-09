@@ -1,69 +1,45 @@
-import time
 import machine
+import time
 
-# Function to calculate the distance using HC-SR04
-def measure_distance(trigger_pin, echo_pin, timeout=1000000):
-    # Set up trigger pin as output
-    trigger = machine.Pin(trigger_pin, machine.Pin.OUT)
-    # Set up echo pin as input
-    echo = machine.Pin(echo_pin, machine.Pin.IN)
-    
-    # Set trigger pin to low for 2 microseconds
-    trigger.low()
-    time.sleep_us(2)
-    
-    # Send a 10-microsecond pulse to the trigger pin
-    trigger.high()
+# Define the GPIO pins for the ultrasonic sensor
+TRIG_PIN = machine.Pin(17, machine.Pin.OUT)
+ECHO_PIN = machine.Pin(16, machine.Pin.IN)
+led = machine.Pin("LED", machine.Pin.OUT)
+
+# Function to measure distance
+def measure_distance():
+    # Set trigger pin to high for 10us
+    TRIG_PIN.high()
     time.sleep_us(10)
-    trigger.low()
-    
-    # Initialize timeout counters
-    start_counter = 0
-    end_counter = 0
-    
-    # Measure the duration of the echo pulse
-    while echo.value() == 0:
-        start_counter += 1
-        if start_counter > timeout:
-            return None
+    TRIG_PIN.low()
+
+    # Wait for echo pin to go high
+    while ECHO_PIN.value() == 0:
         pass
     start_time = time.ticks_us()
-    
-    while echo.value() == 1:
-        end_counter += 1
-        if end_counter > timeout:
-            return None
+
+    # Wait for echo pin to go low
+    while ECHO_PIN.value() == 1:
         pass
     end_time = time.ticks_us()
-    
+
     # Calculate the distance in centimeters
-    duration = time.ticks_diff(end_time, start_time)
-    distance = (duration * 0.0343) / 2
-    
+    duration = end_time - start_time
+    distance = duration / 58
+
     return distance
 
-# Define the GPIO pins for trigger and echo
-trigger_pin1 = 2
-echo_pin1 = 3
-
-trigger_pin2 = 16
-echo_pin2 = 17
-
+# Main loop
 while True:
-    # Measure and print the distance
-    distance = measure_distance(trigger_pin1, echo_pin1)
-    if distance is not None:
-        print("Distance 2:", distance, "cm")
-    else:
-        print("Measurement timeout1, trying again...")
+    #led.on()
+    distance = measure_distance()
+    print(distance)
+    time.sleep(1)
     
-    distance = measure_distance(trigger_pin2, echo_pin2)
-    if distance is not None:
-        print("Distance 1:", distance, "cm")
+    if distance > 15:
+        led.on()
     else:
-        print("Measurement timeout2, trying again...")
-
-
-    # Wait for 1 second before taking the next measurement
+        led.off()
+        
     time.sleep(0.1)
 

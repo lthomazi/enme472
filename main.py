@@ -38,8 +38,8 @@ solenoid.value(0)
 def main():
     led.off()
     abortALL() # start the code without anything moving
-    measure_distance_1()
-    measure_distance_2()
+    #measure_distance_1()
+    #measure_distance_2()
     blink_led(3)
 
     gap_count = 0 # number of gaps between panels
@@ -53,28 +53,11 @@ def main():
     motor1_forward()
     open_solenoid()
     motor2_on()
-    
-    # stop
-    while True:
-        d1 = measure_distance_1()
-        d2 = measure_distance_2()
-        if status == 1 and d1 > GAP_DISTANCE and d2 > GAP_DISTANCE:
-            #print("OVER THE EDGE")
-            abortALL()
-            led.on()
-            # reverse
-            motor1_reverse()
-            sleep(6)
-            status = -1
-            
-            
-        if status == -1 and measure_distance_2() > GAP_DISTANCE:
-            sleep(1)
-            abortALL()
-                
-                #print("END")
+    sleep(5)
+    abortALL() 
+   
         
-        sleep(0.2)
+    
             
 
     
